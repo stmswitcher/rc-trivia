@@ -11,18 +11,26 @@ u.find_channel
 #
 class Trivia
   #
-  # Initializes bot
+  # Initialize bot
   #
   def initialize(u)
+    # Bot configuration
     @conf = TriviaConfig.new
+    # Bot user
     @user = u
+    # Bot state
+    @active = true
+    # Scoreboard
     @scoreboard = Scoreboard.new
 
+    # List of questions
     @questions = []
+    # List of available topics
     @topics = {}
-    @active = true
 
+    # Load questions from topic file
     self.load_question
+    # Reset additional pointers
     self.reset
   end
 
@@ -80,11 +88,17 @@ class Trivia
   # Reset internal pointers
   #
   def reset
+    # If the question was asked
     @question_asked = false
+    # Time passed since question was asked
     @time_passed = 0
+    # Timestamp when question was asked
     @asked_at = 0
+    # Answer to the asked question
     @answer = nil
+    # When messages were read last time
     @last_read_at = Time.now.strftime('%Y-%m-%dT%H:%M:%S.0Z')
+    # Timestamp of the latest users' activity
     @last_activity = Time.now.to_i
   end
 
@@ -99,8 +113,6 @@ class Trivia
     @question_asked = true
     @time_passed = 0
     @asked_at = Time.now.to_i
-    puts @answers
-    self.prepare_hints
   end
 
   def prepare_hints

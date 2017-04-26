@@ -70,7 +70,7 @@ class Scoreboard
       return 'Unknown user'
     end
 
-    @scores[uid]['name'] + '\'s score is ' + @scores[uid]['score']
+    @scores[uid]['name'] + '\'s score is ' + @scores[uid]['score'].to_s
   end
 
 end
