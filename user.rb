@@ -2,6 +2,9 @@ require 'json'
 require 'rest-client'
 require_relative 'trivia-config'
 
+#
+# Bot user.
+#
 class User
   def initialize
     _conf = TriviaConfig.new
@@ -15,9 +18,11 @@ class User
     end
   end
 
-  # Sign in user
   #
-  # This method will save user auth token and user id
+  # Sign in user.
+  #
+  # This method will set user auth token and user id.
+  #
   def login
     puts 'Trying to login'
     _response = self.signed_request '/api/v1/login', 'POST', {user: @username, password: @password}
@@ -33,7 +38,9 @@ class User
     @user_id = _response['data']['userId']
   end
 
+  #
   # Make a signed request
+  #
   def signed_request(uri, method, data = {})
     _user_info = {'X-Auth-Token' => @auth_token, 'X-User-Id' => @user_id}
     _url = @server + uri
@@ -51,6 +58,10 @@ class User
     JSON.parse(_response)
   end
 
+  #
+  # Look for an existing game channel.
+  # If channel is not found, we'll try to create one.
+  #
   def find_channel
     puts 'Looking for channel...'
     _response = self.signed_request'/api/v1/channels.list', 'GET'
@@ -71,13 +82,16 @@ class User
     end
 
     puts 'Joining the channel...'
-    #_response = self.signed_request '/api/v1/channels.open', 'POST', {roomId: @channel_id}
 
+    # Hopefully we're already on the channel
     if _response['status'] != 'success'
       puts 'Unable to join the channel. Whatever...'
     end
   end
 
+  #
+  # Create a new channel.
+  #
   def create_channel
     _response = self.signed_request'/api/v1/channels.create', 'POST', {name: @channel}
 
@@ -90,10 +104,16 @@ class User
     end
   end
 
+  #
+  # Say something into chat.
+  #
   def say(msg)
     self.signed_request '/api/v1/chat.postMessage', 'POST', {roomId: @channel_id, text: '>' + msg}
   end
 
+  #
+  # Read channel messages.
+  #
   def read(since)
     self.signed_request '/api/v1/channels.history', 'GET', {
         'roomId' => @channel_id,

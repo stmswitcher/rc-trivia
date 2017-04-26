@@ -1,5 +1,8 @@
 require 'yaml'
 
+#
+# Bot configuration.
+#
 class TriviaConfig
   def initialize
     _config = YAML.load_file(File.join(File.dirname(__FILE__), 'config.yml'))

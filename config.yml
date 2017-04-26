@@ -1,7 +1,0 @@
-server: 'http://192.168.21.20:3000'
-username: 'q@qwer.rr'
-password: '123321'
-channel: 'trivia-game'
-debug: true
-timeout: 20
-activity_timeout: 30

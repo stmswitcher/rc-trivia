@@ -1,0 +1,18 @@
+# Server address
+server: 'http://192.168.21.20:3000'
+
+# User credentials for bot account
+username: 'bot@localhost'
+password: '12345'
+
+# Channel name for the game
+channel: 'trivia-game'
+
+# Enable debug
+debug: false
+
+# Timeout before the answer will be displayed, sec.
+timeout: 20
+
+# Timeout before bot will go to sleep, sec.
+activity_timeout: 30
