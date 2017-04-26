@@ -138,7 +138,7 @@ class Trivia
       _text = msg['msg']
 
       if _text.split('').first == '!'
-        return self.process_command _text
+        return self.process_command _text, msg['u']['_id']
       end
 
       # If correct answer given
@@ -200,7 +200,7 @@ class Trivia
   #
   # Process commands.
   #
-  def process_command(command)
+  def process_command(command, uid)
     if command == '!rtv'
       return self.process_command_rotate
     elsif command =~ /^!rtv \w+/
@@ -211,9 +211,19 @@ class Trivia
       return self.process_command_commands
     elsif command == '!start'
       return self.process_command_start
+    elsif command == '!score'
+      return self.process_command_score uid
     else
       @user.say ':robot: Unknown command. Write _!commands_ for list of commands'
     end
+    false
+  end
+
+  #
+  # Process command to show user's score.
+  #
+  def process_command_score(uid)
+    @user.say @scoreboard.get_user_score_message uid
     false
   end
 
