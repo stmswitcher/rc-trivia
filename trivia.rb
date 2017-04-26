@@ -1,5 +1,6 @@
 require_relative 'User'
 require_relative 'trivia-config'
+require_relative 'scoreboard'
 
 u = User.new
 u.login
@@ -15,7 +16,8 @@ class Trivia
   def initialize(u)
     @conf = TriviaConfig.new
     @user = u
-    @score = {}
+    @scoreboard = Scoreboard.new
+
     @questions = []
     @topics = {}
     @active = true
@@ -30,7 +32,6 @@ class Trivia
   # If topic is not give, random will take place :)
   #
   def load_question(topic = nil)
-    unless topic.nil? then puts topic end
     _path = File.dirname(__FILE__) + '/questions/'
 
     unless File.directory?(_path)
@@ -132,8 +133,9 @@ class Trivia
       if @question['answers'].include? _text.downcase
         self.reset
         _win_text = ':boom: @' + msg['u']['username'] + ' wins this round! :boom: (The answer is _' + @question['answer'] + '_)'
+        @scoreboard.give_score msg['u']['_id'], msg['u']['username'], 1
         @user.say _win_text
-        self.update_score msg['u']['_id'], msg['u']['username'], 1
+        @user.say @scoreboard.get_user_score_message msg['u']['_id']
         return true
       else
         if @time_passed >= @conf.get_timeout
@@ -259,32 +261,6 @@ class Trivia
       return true
     end
     false
-  end
-
-  #
-  # Updates score for user identified with uid
-  #
-  def update_score(uid, username, score)
-    unless @score.key?(uid)
-      @score[uid] = {
-          'name' => username,
-          'score' => 0
-      }
-    end
-
-    @score[uid]['score'] += score
-    self.give_score uid, username
-  end
-
-  #
-  # Posts score for user identified with uid
-  #
-  def give_score(uid, name)
-    if @score.key?(uid)
-      @user.say "#{@score[uid]['name']}'s score is #{@score[uid]['score']}"
-    else
-      @user.say "#{@score[uid]['name']}'s score is 0"
-    end
   end
 
   #
