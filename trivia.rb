@@ -213,9 +213,23 @@ class Trivia
       return self.process_command_start
     elsif command == '!score'
       return self.process_command_score uid
+    elsif command == '!topics'
+      return self.process_command_topics
     else
       @user.say ':robot: Unknown command. Write _!commands_ for list of commands'
     end
+    false
+  end
+
+  #
+  # Process command to show list of available topics.
+  #
+  def process_command_topics
+    msg = ''
+    @topics.each { |topic|
+      msg += "#{topic.first}\r\n>"
+    }
+    @user.say msg
     false
   end
 
