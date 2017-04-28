@@ -35,6 +35,13 @@ class Trivia
   end
 
   #
+  # Scoreboard accessor.
+  #
+  def get_scoreboard
+    @scoreboard
+  end
+
+  #
   # Collect questions for specified topic from file.
   #
   # If topic is not give, random will take place :)
@@ -348,5 +355,6 @@ loop do
       sleep 2
     end
   end
+  t.get_scoreboard.write_board
   sleep 1
 end
