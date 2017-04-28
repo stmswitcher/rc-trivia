@@ -1,4 +1,5 @@
 # Server address
+# no trailing slash!
 server: 'http://192.168.21.20:3000'
 
 # User credentials for bot account
@@ -16,3 +17,7 @@ timeout: 20
 
 # Timeout before bot will go to sleep, sec.
 activity_timeout: 30
+
+# The game is active from the start
+# If the value is false someone will have to write !start to start the game
+start_active: true

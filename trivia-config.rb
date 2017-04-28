@@ -13,6 +13,7 @@ class TriviaConfig
     @debug = _config['debug']
     @timeout = _config['timeout']
     @activity_timeout = _config['activity_timeout']
+    @start_active = _config['start_active']
   end
 
   def get_server
@@ -41,5 +42,9 @@ class TriviaConfig
 
   def get_activity_timeout
     @activity_timeout
+  end
+
+  def get_start_active
+    @start_active
   end
 end

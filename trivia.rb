@@ -19,7 +19,7 @@ class Trivia
     # Bot user
     @user = u
     # Bot state
-    @active = true
+    @active = @conf.get_start_active
     # Scoreboard
     @scoreboard = Scoreboard.new
 
@@ -89,6 +89,9 @@ class Trivia
     }
 
     @user.say ":robot: Topic set to _*#{topic}*_"
+    unless @active
+      @user.say 'Game is paused. Type !start to resume.'
+    end
   end
 
   #
@@ -149,7 +152,7 @@ class Trivia
       end
 
       # If correct answer given
-      if @question['answers'].include? _text.downcase
+      if @active and @question['answers'].include? _text.downcase
         self.reset
         _win_text = ':boom: @' + msg['u']['username'] + ' wins this round! :boom: (The answer is _' + @question['answer'] + '_)'
         @scoreboard.give_score msg['u']['_id'], msg['u']['username'], 1
