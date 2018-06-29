@@ -211,9 +211,9 @@ class Trivia
   # Process commands.
   #
   def process_command(command, uid)
-    if command == '!rtv'
+    if command == '!topic'
       return self.process_command_rotate
-    elsif command =~ /^!rtv \w+/
+    elsif command =~ /^!topic \w+/
       return self.process_command_rotate_to(command)
     elsif command == '!a'
       return self.process_command_answer
@@ -279,8 +279,8 @@ class Trivia
   #
   def process_command_commands
     msg = '```
-!rtv - Change topic to random one
-!rtv <topic> - Change topic to <topic>
+!topic - Change topic to random one
+!topic <topic> - Change topic to <topic>
 !topics - List available topics
 !commands - List of available commands
 !start - Start the game```'
@@ -289,7 +289,7 @@ class Trivia
   end
 
   #
-  # Process !rtv command to change to random topic.
+  # Process !topic command to change to random topic.
   #
   def process_command_rotate
     self.reset
@@ -298,10 +298,10 @@ class Trivia
   end
 
   #
-  # Process !rtv <topic> command to change to specified topic.
+  # Process !topic <topic> command to change to specified topic.
   #
   def process_command_rotate_to(topic)
-    parsed = topic.scan(/!rtv (\w+)/)
+    parsed = topic.scan(/!topic (\w+)/)
     if self.load_question(parsed[0][0])
       self.reset
       return true
