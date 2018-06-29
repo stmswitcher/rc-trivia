@@ -64,7 +64,7 @@ class User
   #
   def find_channel
     puts 'Looking for channel...'
-    _response = self.signed_request'/api/v1/channels.list', 'GET'
+    _response = self.signed_request'/api/v1/channels.list.joined', 'GET'
     _channels = _response['channels']
 
     _channels.each { |ch|

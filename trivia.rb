@@ -1,4 +1,4 @@
-require_relative 'User'
+require_relative 'user'
 require_relative 'trivia-config'
 require_relative 'scoreboard'
 
