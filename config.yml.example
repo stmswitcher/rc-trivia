@@ -21,3 +21,6 @@ activity_timeout: 30
 # The game is active from the start
 # If the value is false someone will have to write !start to start the game
 start_active: true
+
+# Time before hint could be given
+hint_time: 30

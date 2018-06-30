@@ -3,6 +3,7 @@ require 'yaml'
 
 #
 # Scoreboard keeps track of users' scores.
+# @todo implement top users
 #
 class Scoreboard
   #

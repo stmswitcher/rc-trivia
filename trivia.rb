@@ -28,6 +28,9 @@ class Trivia
     # List of available topics
     @topics = {}
 
+    # Time before hint could be given
+    @hint_time = @conf.get_hint_time
+
     # Load questions from topic file
     self.load_question
     # Reset additional pointers
@@ -118,11 +121,12 @@ class Trivia
   def ask_question
     @question = @questions.sample
     @answers = @question['answers'].compact
-    @answer = @answers.first.downcase
+    @answer = @answers.sort_by {|x| x.length}.first.downcase
     @user.say ":question: `#{@question['question']}` :question:"
     @question_asked = true
     @time_passed = 0
     @asked_at = Time.now.to_i
+    prepare_hints
   end
 
   def prepare_hints
@@ -225,6 +229,10 @@ class Trivia
       return self.process_command_score uid
     elsif command == '!topics'
       return self.process_command_topics
+    elsif command == '!hint'
+      return self.give_hint
+    elsif command == '!top'
+      return self.process_command_top
     else
       @user.say ':robot: Unknown command. Write _!commands_ for list of commands'
     end
@@ -248,6 +256,14 @@ class Trivia
   #
   def process_command_score(uid)
     @user.say @scoreboard.get_user_score_message uid
+    false
+  end
+
+  #
+  # Show top users.
+  #
+  def process_command_top
+    @user.say @scoreboard.get_top_users
     false
   end
 
@@ -283,7 +299,8 @@ class Trivia
 !topic <topic> - Change topic to <topic>
 !topics - List available topics
 !commands - List of available commands
-!start - Start the game```'
+!start - Start the game
+!hint - Give a hint```'
     @user.say msg
     false
   end
@@ -310,31 +327,31 @@ class Trivia
   end
 
   #
-  # If the enough time passed, gives a hint.
-  # The first hint is given after 30 seconds,
-  # others - after 15 seconds each.
+  # If enough time has passed, gives a hint.
   #
   # The hint represents *-ed answer string with some letters being shown.
-  # @todo implement hints
   #
   def give_hint
-    return if @time_passed < 30
-    return if @time_passed < 45 and @hints_given == @hints_available
+    @last_activity = Time.now.to_i
+    if @time_passed < @hint_time
+      @user.say "#{@hint_time - @time_passed} seconds before hint could be given"
+      return
+    end
+
+    if @hints_given == @hints_available
+      @user.say "No more hints available"
+      return
+    end
+
     _chars = @answer.split('')
-    _chars.pop
-    _r = rand(@answer.length) - 1
-    _hints = @hint.split(' ')
-    puts "answer: #{@answer}; _chars: #{_chars}; _r: #{_r}; _hints: #{_hints}"
-    while _hints[_r] != '*'
-      puts _r
-      puts _hints[_r]
-      sleep 3
+    _r = rand(@answer.length)
+    while @hint[_r] != '*'
       _r = rand(@answer.length) - 1
     end
-    _hints[_r] = @answer.split('')[_r]
-    @hint = _hints.join(' ')
-    @user.say @hint
+    @hint[_r] = @answer.split('')[_r]
+    @user.say " :spy: `#{@hint}`"
     @hints_given += 1
+    false
   end
 
   #
