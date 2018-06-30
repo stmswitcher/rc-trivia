@@ -10,11 +10,11 @@ Users in chat room are being asked a question, first user that gives correct ans
 
 ### Requirements
 
-There's no special requirements for this bot, except that you need Ruby installed. Since bot is using REST API, you don't event need your own Rocket Chat server, just point the bot to the server you like by setting corresponding server value.
+There's no special requirements for this bot, except that you need Ruby installed. Since bot is using REST API, you don't even need your own Rocket Chat server, just point the bot to the server you like by setting corresponding server value.
 
 _Please, don't use the bot for abusing purposes._
 
-However, it'd be better to create bot user accound for your server to make it clear that the game is being operated by bot user. Refer to [Rocket Chat documentation](https://rocket.chat/docs/bots/) on how to do it.
+However, it'd be better to create bot user account for your server to make it clear that the game is being operated by bot user. Refer to [Rocket Chat documentation](https://rocket.chat/docs/bots/) on how to do it.
 
 ### Configuration
 
@@ -28,6 +28,10 @@ Configuration file example has all possible settings, copy _config.yml.example_ 
 * **activity_timeout** - Time in seconds, after which it's considered that there's no active users at the moment and bot will suspend untill `!start` command is given. This is dont to avoid spamming in the channel when no game in progress.
 * **start_active** - Start the game immediately when the bot has started, otherwise, it takes to give bot `!start` command to start the game.
 * **hint_time** - Time in seconds, after which it's allowed to give a hint to the current question.
+
+### Starting the bot
+
+    $ ruby trivia.rb
 
 ### Commands
 
