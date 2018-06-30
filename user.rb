@@ -85,7 +85,7 @@ class User
 
     # Hopefully we're already on the channel
     if _response['status'] != 'success'
-      puts 'Unable to join the channel. Whatever...'
+      puts 'Unable to join the channel. Probably already in the channel.'
     end
   end
 

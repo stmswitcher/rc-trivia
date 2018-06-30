@@ -133,7 +133,6 @@ class Trivia
     @hints_given = 0
     @hints_available = @answer.length / 3
     @hint = '*' * @answer.length
-    puts "Hint: #{@hint}"
   end
 
   #
@@ -231,8 +230,6 @@ class Trivia
       return self.process_command_topics
     elsif command == '!hint'
       return self.give_hint
-    elsif command == '!top'
-      return self.process_command_top
     else
       @user.say ':robot: Unknown command. Write _!commands_ for list of commands'
     end
@@ -256,14 +253,6 @@ class Trivia
   #
   def process_command_score(uid)
     @user.say @scoreboard.get_user_score_message uid
-    false
-  end
-
-  #
-  # Show top users.
-  #
-  def process_command_top
-    @user.say @scoreboard.get_top_users
     false
   end
 
