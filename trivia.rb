@@ -302,7 +302,7 @@ class Trivia
   # Write answer to chat.
   #
   def process_command_answer
-    if @conf.get_debug
+    if $config.get_debug
       @user.say @answer
     end
     false
