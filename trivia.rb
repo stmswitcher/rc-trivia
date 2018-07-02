@@ -2,9 +2,15 @@ require_relative 'user'
 require_relative 'trivia-config'
 require_relative 'scoreboard'
 
-u = User.new
-u.login
-u.find_channel
+$config = TriviaConfig.new
+
+def debug (msg)
+  puts msg if $config.get_debug
+end
+
+user = User.new
+user.login
+user.find_channel
 
 #
 # Primary class responsible for the game.
@@ -13,13 +19,10 @@ class Trivia
   #
   # Initialize bot
   #
-  def initialize(u)
-    # Bot configuration
-    @conf = TriviaConfig.new
-    # Bot user
-    @user = u
+  def initialize(user)
+    @user = user
     # Bot state
-    @active = @conf.get_start_active
+    @active = $config.get_start_active
     # Scoreboard
     @scoreboard = Scoreboard.new
 
@@ -29,10 +32,10 @@ class Trivia
     @topics = {}
 
     # Time before hint could be given
-    @hint_time = @conf.get_hint_time
+    @hint_time = $config.get_hint_time
 
     # Load questions from topic file
-    self.load_question
+    self.load_questions
     # Reset additional pointers
     self.reset
   end
@@ -47,9 +50,9 @@ class Trivia
   #
   # Collect questions for specified topic from file.
   #
-  # If topic is not give, random will take place :)
+  # If topic is not given, it will be set randomly.
   #
-  def load_question(topic = nil)
+  def load_questions(topic = nil)
     _path = File.dirname(__FILE__) + '/questions/'
 
     unless File.directory?(_path)
@@ -109,26 +112,38 @@ class Trivia
     @asked_at = 0
     # Answer to the asked question
     @answer = nil
-    # When messages were read last time
-    @last_read_at = Time.now.strftime('%Y-%m-%dT%H:%M:%S.0Z')
     # Timestamp of the latest users' activity
-    @last_activity = Time.now.to_i
+    @last_activity = nil
   end
 
   #
-  # Ask a question and drop counters
+  # Ask a question and drop counters.
   #
   def ask_question
     @question = @questions.sample
     @answers = @question['answers'].compact
     @answer = @answers.sort_by {|x| x.length}.first.downcase
-    @user.say ":question: `#{@question['question']}` :question:"
+
+    debug @answer
+
+    _response = @user.say ":question: `#{@question['question']}` :question:"
+
+    @asked_at = Time.parse(_response['message']['ts'])
+
+    # If @last_activity was never set before, set it to the time of first question
+    unless @last_activity
+      @last_activity = @last_read_at
+    end
+
     @question_asked = true
     @time_passed = 0
-    @asked_at = Time.now.to_i
+    @last_read_at = @asked_at
     prepare_hints
   end
 
+  #
+  # Initialize hint.
+  #
   def prepare_hints
     @hints_given = 0
     @hints_available = @answer.length / 3
@@ -140,12 +155,16 @@ class Trivia
   # looking for correct answer,
   # handling commands.
   #
+  # Method returns true in case if next question has to be asked,
+  # false if game has to continue.
+  #
   def read
     _messages = @user.read @last_read_at
-    _hour = Time.now.hour - 2
-    @last_read_at = Time.now.strftime("%Y-%m-%dT#{_hour}:%M:%S.0Z")
+    @last_read_at = Time.parse(_messages['messages'].first['ts'])
+
     if @active
-      @time_passed = Time.now.to_i - @asked_at end
+      @time_passed = @last_read_at.to_i - @asked_at.to_i
+    end
 
     _messages['messages'].each { |msg|
       _text = msg['msg']
@@ -163,7 +182,7 @@ class Trivia
         @user.say @scoreboard.get_user_score_message msg['u']['_id']
         return true
       else
-        if @time_passed >= @conf.get_timeout
+        if @time_passed >= $config.get_timeout
           _text = 'Time\'s up! The answer was ' + @answer
           @user.say _text
           return true
@@ -171,7 +190,7 @@ class Trivia
       end
 
       unless msg['u']['_id'] == @user.get_user_id
-        @last_activity = Time.now.to_i
+        @last_activity = Time.parse(_messages['messages'].first['ts'])
         unless @active
           @user.say 'Game is paused. Type !start to resume.'
           return true
@@ -180,15 +199,15 @@ class Trivia
     }
 
     if @active
-      activity_diff = Time.now.to_i - @last_activity
-      if activity_diff >= @conf.get_activity_timeout
+      activity_diff = @last_read_at.to_i - @last_activity.to_i
+      if activity_diff.to_i >= $config.get_activity_timeout
         @user.say "No activity for a while. Pausing a game.\nType _!start_ to resume."
         self.pause_game
         return true
       end
     end
 
-    # Give hit if applicable
+    # Give hit if applicable @todo
     #self.give_hint
 
     false
@@ -299,7 +318,7 @@ class Trivia
   #
   def process_command_rotate
     self.reset
-    self.load_question
+    self.load_questions
     true
   end
 
@@ -308,7 +327,7 @@ class Trivia
   #
   def process_command_rotate_to(topic)
     parsed = topic.scan(/!topic (\w+)/)
-    if self.load_question(parsed[0][0])
+    if self.load_questions(parsed[0][0])
       self.reset
       return true
     end
@@ -321,7 +340,7 @@ class Trivia
   # The hint represents *-ed answer string with some letters being shown.
   #
   def give_hint
-    @last_activity = Time.now.to_i
+    @last_activity = @last_read_at
     if @time_passed < @hint_time
       @user.say "#{@hint_time - @time_passed} seconds before hint could be given"
       return
@@ -351,19 +370,19 @@ class Trivia
   end
 end
 
-t = Trivia.new(u)
+game = Trivia.new(user)
 
 loop do
-  if t.get_active
-    t.ask_question
+  if game.get_active
+    game.ask_question
   end
   loop do
-    if t.read
+    if game.read
       break
     else
       sleep 2
     end
   end
-  t.get_scoreboard.write_board
+  game.get_scoreboard.write_board
   sleep 1
 end

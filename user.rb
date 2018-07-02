@@ -1,37 +1,36 @@
 require 'json'
 require 'rest-client'
-require_relative 'trivia-config'
 
 #
 # Bot user.
 #
 class User
   def initialize
-    _conf = TriviaConfig.new
-    @username = _conf.get_username
-    @password = _conf.get_password
-    @server = _conf.get_server
-    @channel = _conf.get_channel
     @channel_id
-    if _conf.get_debug
+    @auth_token
+    @user_id
+    if $config.get_debug
       RestClient.log = 'stdout'
     end
   end
 
   #
-  # Sign in user.
+  # Sign user in.
   #
   # This method will set user auth token and user id.
   #
   def login
-    puts 'Trying to login'
-    _response = self.signed_request '/api/v1/login', 'POST', {user: @username, password: @password}
+    debug 'Trying to login'
+    _response = self.signed_request '/api/v1/login', 'POST', {
+        user: $config.get_username,
+        password: $config.get_password
+    }
 
     if _response['status'] != 'success'
       puts 'Unable to login!'
-      exit(1)
+      exit 1
     else
-      puts 'Signed in successfully'
+      debug 'Signed in successfully'
     end
 
     @auth_token = _response['data']['authToken']
@@ -39,11 +38,13 @@ class User
   end
 
   #
-  # Make a signed request
+  # Make a signed request.
+  #
+  # Will return JSON response.
   #
   def signed_request(uri, method, data = {})
     _user_info = {'X-Auth-Token' => @auth_token, 'X-User-Id' => @user_id}
-    _url = @server + uri
+    _url = $config.get_server + uri
 
     if method == 'POST'
       _response = RestClient.post(_url, data, _user_info)
@@ -63,43 +64,21 @@ class User
   # If channel is not found, we'll try to create one.
   #
   def find_channel
-    puts 'Looking for channel...'
+    debug 'Looking for channel...'
     _response = self.signed_request'/api/v1/channels.list.joined', 'GET'
     _channels = _response['channels']
 
     _channels.each { |ch|
-      if ch['name'] == @channel
+      if ch['name'] == $config.get_channel
         @channel_id = ch['_id']
         break
       end
     }
 
     if @channel_id
-      puts "Channel found! Channel ID is #{@channel_id}"
+      debug "Channel found! Channel ID is #{@channel_id}"
     else
-      puts 'Channel not found. Creating one...'
-      self.create_channel
-    end
-
-    puts 'Joining the channel...'
-
-    # Hopefully we're already on the channel
-    if _response['status'] != 'success'
-      puts 'Unable to join the channel. Probably already in the channel.'
-    end
-  end
-
-  #
-  # Create a new channel.
-  #
-  def create_channel
-    _response = self.signed_request'/api/v1/channels.create', 'POST', {name: @channel}
-
-    if _response['status'] == 'success'
-      @channel_id = _response['channel']['_id']
-      puts "Channel created! Channel ID is #{@channel_id}"
-    else
-      puts 'Could not create channel!'
+      puts "Channel not found. Check if channel ##{$config.get_channel} exists and bot user is added to the channel."
       exit 1
     end
   end
