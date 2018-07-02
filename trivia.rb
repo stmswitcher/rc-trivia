@@ -162,7 +162,7 @@ class Trivia
   # false if game has to continue.
   #
   def read
-    _messages = @user.read @last_read_at
+    _messages = @user.read @last_read_at.strftime("%Y-%m-%dT%H:%M:%S.0Z")
 
     _messages = _messages['messages'].select{|item|
       Time.parse(item['ts']).to_i > @last_read_at.to_i and item['u']['id'] != @user.get_user_id
