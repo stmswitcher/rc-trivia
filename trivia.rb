@@ -94,9 +94,11 @@ class Trivia
       }
     }
 
-    @user.say ":robot: Topic set to _*#{topic}*_"
-    unless @active
+    if @active
+      @user.say ":robot: Topic set to _*#{topic}*_"
+    elsif
       @user.say 'Game is paused. Type !start to resume.'
+      return false
     end
   end
 
@@ -114,6 +116,7 @@ class Trivia
     @answer = nil
     # Timestamp of the latest users' activity
     @last_activity = nil
+    @latest_real_msg_id = nil
   end
 
   #
@@ -160,13 +163,19 @@ class Trivia
   #
   def read
     _messages = @user.read @last_read_at
-    @last_read_at = Time.parse(_messages['messages'].first['ts'])
+
+    _messages = _messages['messages'].select{|item|
+      Time.parse(item['ts']).to_i > @last_read_at.to_i and item['u']['id'] != @user.get_user_id
+    }
+    if _messages.any?
+      @last_read_at = Time.parse(_messages.first['ts'])
+    end
 
     if @active
       @time_passed = @last_read_at.to_i - @asked_at.to_i
     end
 
-    _messages['messages'].each { |msg|
+    _messages.each { |msg|
       _text = msg['msg']
 
       if _text.split('').first == '!'
@@ -190,15 +199,16 @@ class Trivia
       end
 
       unless msg['u']['_id'] == @user.get_user_id
-        @last_activity = Time.parse(_messages['messages'].first['ts'])
+        @last_activity = Time.parse(_messages.first['ts'])
         unless @active
           @user.say 'Game is paused. Type !start to resume.'
+          @latest_real_msg_id = msg['id']
           return true
         end
       end
     }
 
-    if @active
+    if @active and _messages.any?
       activity_diff = @last_read_at.to_i - @last_activity.to_i
       if activity_diff.to_i >= $config.get_activity_timeout
         @user.say "No activity for a while. Pausing a game.\nType _!start_ to resume."
@@ -234,9 +244,9 @@ class Trivia
   #
   def process_command(command, uid)
     if command == '!topic'
-      return self.process_command_rotate
+      return self.process_command_topic
     elsif command =~ /^!topic \w+/
-      return self.process_command_rotate_to(command)
+      return self.process_command_change_topic(command)
     elsif command == '!a'
       return self.process_command_answer
     elsif command == '!commands'
@@ -316,7 +326,7 @@ class Trivia
   #
   # Process !topic command to change to random topic.
   #
-  def process_command_rotate
+  def process_command_topic
     self.reset
     self.load_questions
     true
@@ -325,10 +335,11 @@ class Trivia
   #
   # Process !topic <topic> command to change to specified topic.
   #
-  def process_command_rotate_to(topic)
+  def process_command_change_topic(topic)
     parsed = topic.scan(/!topic (\w+)/)
     if self.load_questions(parsed[0][0])
       self.reset
+      sleep 1
       return true
     end
     false
@@ -384,5 +395,5 @@ loop do
     end
   end
   game.get_scoreboard.write_board
-  sleep 1
+  sleep 2
 end

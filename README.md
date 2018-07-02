@@ -10,6 +10,8 @@ Users in chat room are being asked a question, first user that gives correct ans
 
 ### Requirements
 
+Gems: `rest-client daemons`.
+
 There's no special requirements for this bot, except that you need Ruby installed. Since bot is using REST API, you don't even need your own Rocket Chat server, just point the bot to the server you like by setting corresponding server value.
 
 _Please, don't use the bot for abusing purposes._
