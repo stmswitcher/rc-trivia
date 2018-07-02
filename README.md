@@ -32,6 +32,9 @@ Configuration file example has all possible settings, copy _config.yml.example_ 
 ### Starting the bot
 
     $ ruby trivia.rb
+or run as a daemon:
+    
+    $ ruby trivia-bot.rb start
 
 ### Commands
 

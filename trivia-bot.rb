@@ -1,3 +1,3 @@
-require "daemons"
+require 'daemons'
 
-Deamons.run('trivia.rb')
+Daemons.run('trivia.rb')
