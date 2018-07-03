@@ -147,8 +147,10 @@ class Trivia
   #
   def prepare_hints
     @hints_given = 0
-    @hints_available = @answer.length / 3
+    @hints_available = [@answer.length / 3, @answer.split('').uniq.length].min
     @hint = '*' * @answer.length
+    # Letters that are already uncovered
+    @hint_letters = []
   end
 
   #
@@ -352,12 +354,19 @@ class Trivia
       return
     end
 
-    _chars = @answer.split('')
-    _r = rand(@answer.length)
-    while @hint[_r] != '*'
-      _r = rand(@answer.length) - 1
+    _position = rand(@answer.length)
+    while @hint[_position] != '*' and not @hint_letters.include? @answer.split('')[_position]
+      _position = rand(@answer.length)
     end
-    @hint[_r] = @answer.split('')[_r]
+    @hint = ''
+    @hint_letters.push @answer.split('')[_position]
+    @answer.split('').each { | letter |
+      if @hint_letters.include? letter
+        @hint = @hint + letter
+      else
+        @hint = @hint + '*'
+      end
+    }
     @user.say " :spy: `#{@hint}`"
     @hints_given += 1
     false
