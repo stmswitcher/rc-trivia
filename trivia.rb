@@ -108,15 +108,14 @@ class Trivia
   def reset
     # If the question was asked
     @question_asked = false
-    # Time passed since question was asked
+    # Time passed since question was asked (system clock)
     @time_passed = 0
-    # Timestamp when question was asked
+    # Timestamp when question was asked (system time)
     @asked_at = 0
     # Answer to the asked question
     @answer = nil
-    # Timestamp of the latest users' activity
+    # Timestamp of the latest users' activity (remote clock)
     @last_activity = nil
-    @latest_real_msg_id = nil
   end
 
   #
@@ -131,16 +130,15 @@ class Trivia
 
     _response = @user.say ":question: `#{@question['question']}` :question:"
 
-    @asked_at = Time.parse(_response['message']['ts'])
+    @asked_at = Time.now.to_i
 
     # If @last_activity was never set before, set it to the time of first question
     unless @last_activity
-      @last_activity = @last_read_at
+      @last_activity = Time.parse(_response['message']['ts'])
     end
 
     @question_asked = true
     @time_passed = 0
-    @last_read_at = @asked_at
     prepare_hints
   end
 
@@ -162,17 +160,17 @@ class Trivia
   # false if game has to continue.
   #
   def read
-    _messages = @user.read @last_read_at.strftime("%Y-%m-%dT%H:%M:%S.0Z")
+    _messages = @user.read @last_activity.strftime("%Y-%m-%dT%H:%M:%S.0Z")
 
     _messages = _messages['messages'].select{|item|
-      Time.parse(item['ts']).to_i > @last_read_at.to_i and item['u']['id'] != @user.get_user_id
+      Time.parse(item['ts']).to_i > @last_activity.to_i and item['u']['_id'] != @user.get_user_id
     }
     if _messages.any?
-      @last_read_at = Time.parse(_messages.first['ts'])
+      @last_activity = Time.parse(_messages.first['ts'])
     end
 
     if @active
-      @time_passed = @last_read_at.to_i - @asked_at.to_i
+      @time_passed = Time.now.to_i - @asked_at
     end
 
     _messages.each { |msg|
@@ -197,24 +195,17 @@ class Trivia
           return true
         end
       end
-
-      unless msg['u']['_id'] == @user.get_user_id
-        @last_activity = Time.parse(_messages.first['ts'])
-        unless @active
-          @user.say 'Game is paused. Type !start to resume.'
-          @latest_real_msg_id = msg['id']
-          return true
-        end
-      end
     }
 
-    if @active and _messages.any?
-      activity_diff = @last_read_at.to_i - @last_activity.to_i
-      if activity_diff.to_i >= $config.get_activity_timeout
+    if @active and @time_passed >= $config.get_activity_timeout
         @user.say "No activity for a while. Pausing a game.\nType _!start_ to resume."
         self.pause_game
         return true
-      end
+    end
+
+    if _messages.any? and not @active
+      @user.say 'Game is paused. Type !start to resume.'
+      return true
     end
 
     # Give hit if applicable @todo
@@ -351,7 +342,6 @@ class Trivia
   # The hint represents *-ed answer string with some letters being shown.
   #
   def give_hint
-    @last_activity = @last_read_at
     if @time_passed < @hint_time
       @user.say "#{@hint_time - @time_passed} seconds before hint could be given"
       return
