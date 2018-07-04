@@ -190,14 +190,14 @@ class Trivia
         @user.say _win_text
         @user.say @scoreboard.get_user_score_message msg['u']['_id']
         return true
-      else
-        if @time_passed >= $config.get_timeout
-          _text = 'Time\'s up! The answer was ' + @answer
-          @user.say _text
-          return true
-        end
       end
     }
+
+    if @time_passed >= $config.get_timeout
+      _text = 'Time\'s up! The answer was ' + @answer
+      @user.say _text
+      return true
+    end
 
     if @active and @time_passed >= $config.get_activity_timeout
         @user.say "No activity for a while. Pausing a game.\nType _!start_ to resume."
