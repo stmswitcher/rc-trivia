@@ -138,7 +138,6 @@ class Trivia
     end
 
     @question_asked = true
-    @time_passed = 0
     prepare_hints
   end
 
