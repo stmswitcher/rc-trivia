@@ -171,7 +171,7 @@ class Trivia
     end
 
     if @active
-      @time_passed = Time.now.to_i - @asked_at
+      @time_passed = Time.now.to_i - @last_activity.to_i
     end
 
     _messages.each { |msg|
