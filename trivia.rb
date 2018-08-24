@@ -374,6 +374,9 @@ class Trivia
     false
   end
 
+#
+# Throw a coin command.
+#
 def throw_a_coin
   @user.say ['Heads win', 'Tails win'].sample
   false
