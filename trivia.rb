@@ -252,6 +252,8 @@ class Trivia
       return self.process_command_topics
     elsif command == '!hint'
       return self.give_hint
+    elsif command == '!coin'
+      return self.throw_a_coin
     else
       @user.say ':robot: Unknown command. Write _!commands_ for list of commands'
     end
@@ -371,6 +373,11 @@ class Trivia
     @hints_given += 1
     false
   end
+
+def throw_a_coin
+  @user.say ['Heads win', 'Tails win'].sample
+  false
+end
 
   #
   # Get active state of the bot.
